@@ -3,7 +3,7 @@
 PACKAGE_NAME := markdown_normalization
 PYTHON := $(shell which python)
 
-.PHONY: all check-deps install-deps build install clean
+.PHONY: all check-deps install-deps build install clean test
 
 all: check-deps install-deps build test install clean
 
@@ -21,17 +21,18 @@ install-deps:
 build:
 	@echo "🔨 Building wheel with maturin..."
 	@maturin build --release --strip
-
-clean:
-	@echo "🧹 Cleaning build artifacts..."
-	@rm -rf build dist target *.egg-info
-
+	@rm -f target/wheels/*linux_x86_64.whl
+	
 test:
 	@echo "🧪 Running tests..."
 	@$(PYTHON) -m pip install pytest
 	@$(PYTHON) -m pytest -v -s
 
-
 install:
 	@echo "📦 Installing wheel locally..."
-	@pip install --force-reinstall --no-cache-dir target/wheels/$(PACKAGE_NAME)-*.whl
+	@pip install --force-reinstall --no-cache-dir $(shell ls target/wheels/$(PACKAGE_NAME)-*manylinux*.whl | head -n1)
+
+clean:
+	@echo "🧹 Cleaning build artifacts..."
+	@rm -rf build dist target *.egg-info
+	@find . -type d -name '__pycache__' -exec rm -rf {} +
